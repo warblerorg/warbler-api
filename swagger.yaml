@@ -127,6 +127,23 @@ paths:
                     description: 'Thread ID or comment ID does not exist'
             security:
                 - bearerAuth: []
+    /preview/:
+        summary: 'Render markdown as HTML'
+        post:
+            tags: [comment]
+            summary: 'Find comments for a thread'
+            operationId: 'preview'
+            requestBody:
+                required: true
+                content:
+                    text/plain:
+                        schema:
+                            type: 'string'
+                            format: 'markdown'
+            responses:
+                200:
+                    description: 'Response with HTML'
+            security: []
     /user:
         post:
             tags:
@@ -232,15 +249,13 @@ components:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/NewComment'
-                multipart/form-data:
-                    schema:
-                        $ref: '#/components/schemas/NewComment'
                 application/x-www-form-urlencoded:
                     schema:
                         $ref: '#/components/schemas/NewComment'
                 text/plain:
                     schema:
                         type: 'string'
+                        format: 'markdown'
     schemas:
         Comment:
             type: 'object'
@@ -257,6 +272,16 @@ components:
                     $ref: '#/components/schemas/User'
                 content:
                     type: 'string'
+                created_at:
+                    type: 'string'
+                    format: 'date-time'
+                updated_at:
+                    type: 'string'
+                    format: 'date-time'
+                reactions:
+                    type: 'array'
+                    items:
+                        $ref: '#/components/schemas/Reaction'
         NewComment:
             type: 'object'
             properties:
@@ -265,8 +290,16 @@ components:
                     format: 'int32'
                 content:
                     type: 'string'
+                    format: 'markdown'
             required:
                 - content
+        Reaction:
+            type: 'object'
+            properties:
+                emoji:
+                    type: 'string'
+                count:
+                    type: 'integer'
         User:
             type: 'object'
             properties:
