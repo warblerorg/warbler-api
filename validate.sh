@@ -1,2 +1,2 @@
 #!/bin/bash
-curl -X POST --data-binary @swagger.yaml -H 'Content-Type: application/x-yaml' http://online.swagger.io/validator/debug
+curl http://validator.swagger.io/validator/debug?url=https://raw.githubusercontent.com/warblerorg/warbler-api/${TRAVIS_BRANCH}/swagger.yaml
