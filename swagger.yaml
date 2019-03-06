@@ -211,6 +211,7 @@ paths:
                   required: true
                   schema:
                       type: 'string'
+                      format: password
             responses:
                 200:
                     description: 'successful operation, returns JSON Web Token'
@@ -218,6 +219,7 @@ paths:
                         application/json:
                             schema:
                                 type: 'string'
+                                format: jwt
                 400:
                     description: 'Invalid username/password supplied'
             security: []
@@ -255,7 +257,7 @@ components:
                 text/plain:
                     schema:
                         type: 'string'
-                        format: 'markdown'
+                        format: markdown
     schemas:
         Comment:
             type: 'object'
@@ -272,6 +274,7 @@ components:
                     $ref: '#/components/schemas/User'
                 content:
                     type: 'string'
+                    format: html
                 created_at:
                     type: 'string'
                     format: 'date-time'
