@@ -4,6 +4,7 @@ node_js:
 sudo: false
 cache: npm
 script:
+    - ./validate.sh
     - npm run lint:check
     - npm run build
 deploy:
