@@ -35,7 +35,7 @@ paths:
                   in: query
                   description: 'Direction to sort comments'
                   schema:
-                      type: 'string'
+                      type: string
                       enum: [asc, desc]
                 - name: 'max_depth'
                   in: query
@@ -48,7 +48,12 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/CommentsArray'
+                                type: object
+                                properties:
+                                    comments:
+                                        $ref: '#/components/schemas/CommentsArray'
+                                    total:
+                                        type: integer
                 404:
                     description: 'Thread ID does not exist'
             security: []
@@ -76,18 +81,20 @@ paths:
             tags: [comment]
             summary: 'Get a single comment sub-tree in the thread'
             operationId: 'getComment'
-            parameters: 
+            parameters:
                 - $ref: '#/components/parameters/threadIdParam'
                 - $ref: '#/components/parameters/commentIdParam'
                 - name: 'sort'
                   in: query
                   description: 'Direction to sort comments'
                   schema:
-                      type: 'string'
+                      type: string
                       enum: [asc, desc]
                 - name: 'max_depth'
                   in: query
-                  description: 'Max depth of child comments relative to the depth of this comment'
+                  description:
+                      'Max depth of child comments relative to the depth of this
+                      comment'
                   schema:
                       type: integer
             responses:
@@ -147,7 +154,7 @@ paths:
                 content:
                     text/plain:
                         schema:
-                            type: 'string'
+                            type: string
                             format: 'markdown'
             responses:
                 200:
@@ -213,13 +220,13 @@ paths:
                   description: 'The user name for login (Email or ID)'
                   required: true
                   schema:
-                      type: 'string'
+                      type: string
                 - name: 'password'
                   in: 'query'
                   description: 'The password for login'
                   required: true
                   schema:
-                      type: 'string'
+                      type: string
                       format: password
             responses:
                 200:
@@ -227,7 +234,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: 'string'
+                                type: string
                                 format: jwt
                 400:
                     description: 'Invalid username/password supplied'
@@ -265,7 +272,7 @@ components:
                         $ref: '#/components/schemas/NewComment'
                 text/plain:
                     schema:
-                        type: 'string'
+                        type: string
                         format: markdown
     parameters:
         threadIdParam:
@@ -274,26 +281,27 @@ components:
             description: 'ID of thread containing comments'
             required: true
             schema:
-                type: 'string'
+                type: string
         commentIdParam:
             name: 'comment_id'
             in: 'path'
             description: 'ID of comment'
             required: true
             schema:
-                type: 'integer'
+                type: integer
                 format: 'int32'
     schemas:
         Comment:
-            type: 'object'
+            type: object
             properties:
                 thread_id:
-                    type: 'string'
+                    type: string
                 comment_id:
-                    type: 'integer'
+                    type: integer
                     format: 'int32'
                 parent_id:
-                    type: 'integer'
+                    nullable: true
+                    type: integer
                     format: 'int32'
                 author:
                     $ref: '#/components/schemas/User'
@@ -301,16 +309,16 @@ components:
                     type: string
                     enum: [none, author]
                 content:
-                    type: 'string'
+                    type: string
                     format: html
                 created_at:
-                    type: 'string'
+                    type: string
                     format: 'date-time'
                 updated_at:
-                    type: 'string'
+                    type: string
                     format: 'date-time'
                 reactions:
-                    type: 'array'
+                    type: array
                     items:
                         $ref: '#/components/schemas/Reaction'
                 children:
@@ -324,24 +332,24 @@ components:
                 count:
                     type: integer
         CommentsArray:
-            type: 'array'
-            items: 
+            type: array
+            items:
                 oneOf:
                     - $ref: '#/components/schemas/Comment'
                     - $ref: '#/components/schemas/MoreComment'
         NewComment:
-            type: 'object'
+            type: object
             properties:
                 parent_id:
-                    type: 'integer'
+                    type: integer
                     format: 'int32'
                 content:
-                    type: 'string'
+                    type: string
                     format: 'markdown'
             required:
                 - content
         Reaction:
-            type: 'object'
+            type: object
             properties:
                 emoji:
                     type: string
@@ -358,16 +366,16 @@ components:
                 count: 3
                 viewer_has_reacted: false
         User:
-            type: 'object'
+            type: object
             properties:
                 username:
-                    type: 'string'
+                    type: string
                 name:
-                    type: 'string'
+                    type: string
                 website:
-                    type: 'string'
+                    type: string
                 avatar_url:
-                    type: 'string'
+                    type: string
             example:
                 username: 'drwho'
                 name: 'John Smith'
