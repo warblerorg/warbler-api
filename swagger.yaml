@@ -23,22 +23,58 @@ tags:
     - name: 'user'
       description: 'Operations about user'
 paths:
-    /comments/{thread_id}/:
+    /thread/{thread_id}/:
         summary: 'Represents a thread'
+        get:
+            tags: [comment]
+            summary: 'Get metadata for a thread'
+            operationId: 'getThread'
+            parameters:
+                - $ref: '#/components/parameters/threadIdParam'
+            responses:
+                200:
+                    description: 'Response with metadata'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    thread_id:
+                                        type: string
+                404:
+                    description: 'Thread ID does not exist'
+            security: []
+    /thread/{thread_id}/comments/:
+        summary: 'Represents comments in a thread'
         get:
             tags: [comment]
             summary: 'Find comments for a thread'
             operationId: 'getComments'
             parameters:
-                - name: 'thread_id'
-                  in: 'path'
-                  description: 'ID of thread containing comments'
-                  required: true
+                - $ref: '#/components/parameters/threadIdParam'
+                - name: 'sort'
+                  in: query
+                  description: 'Direction to sort comments'
                   schema:
-                      type: 'string'
+                      type: string
+                      enum: [asc, desc]
+                - name: 'max_depth'
+                  in: query
+                  description: 'Max depth of child comments'
+                  schema:
+                      type: integer
             responses:
                 200:
                     description: 'Response with comments'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    comments:
+                                        $ref: '#/components/schemas/CommentsArray'
+                                    total:
+                                        type: integer
                 404:
                     description: 'Thread ID does not exist'
             security: []
@@ -49,12 +85,7 @@ paths:
             requestBody:
                 $ref: '#/components/requestBodies/NewCommentBody'
             parameters:
-                - name: 'thread_id'
-                  in: 'path'
-                  description: 'ID of thread containing comments'
-                  required: true
-                  schema:
-                      type: 'string'
+                - $ref: '#/components/parameters/threadIdParam'
             responses:
                 200:
                     description: 'Successfully added comment'
@@ -66,7 +97,36 @@ paths:
                     description: 'Thread ID does not exist'
             security:
                 - bearerAuth: []
-    /comments/{thread_id}/{comment_id}:
+    /thread/{thread_id}/comments/{comment_id}:
+        get:
+            tags: [comment]
+            summary: 'Get a single comment sub-tree in the thread'
+            operationId: 'getComment'
+            parameters:
+                - $ref: '#/components/parameters/threadIdParam'
+                - $ref: '#/components/parameters/commentIdParam'
+                - name: 'sort'
+                  in: query
+                  description: 'Direction to sort comments'
+                  schema:
+                      type: string
+                      enum: [asc, desc]
+                - name: 'max_depth'
+                  in: query
+                  description:
+                      'Max depth of child comments relative to the depth of this
+                      comment'
+                  schema:
+                      type: integer
+            responses:
+                200:
+                    description: 'Comment sub-tree'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Comment'
+                404:
+                    description: 'Thread ID or comment ID does not exist'
         put:
             tags: [comment]
             summary: 'Update a comment in the thread'
@@ -74,19 +134,8 @@ paths:
             requestBody:
                 $ref: '#/components/requestBodies/NewCommentBody'
             parameters:
-                - name: 'thread_id'
-                  in: 'path'
-                  description: 'ID of thread containing comments'
-                  required: true
-                  schema:
-                      type: 'string'
-                - name: 'comment_id'
-                  in: 'path'
-                  description: 'ID of comment'
-                  required: true
-                  schema:
-                      type: 'integer'
-                      format: 'int32'
+                - $ref: '#/components/parameters/threadIdParam'
+                - $ref: '#/components/parameters/commentIdParam'
             responses:
                 200:
                     description: 'Successfully updated comment'
@@ -105,19 +154,8 @@ paths:
             summary: 'Delete a comment in the thread'
             operationId: 'deleteComment'
             parameters:
-                - name: 'thread_id'
-                  in: 'path'
-                  description: 'ID of thread containing comments'
-                  required: true
-                  schema:
-                      type: 'string'
-                - name: 'comment_id'
-                  in: 'path'
-                  description: 'ID of comment'
-                  required: true
-                  schema:
-                      type: 'integer'
-                      format: 'int32'
+                - $ref: '#/components/parameters/threadIdParam'
+                - $ref: '#/components/parameters/commentIdParam'
             responses:
                 200:
                     description: 'Successfully deleted comment'
@@ -127,6 +165,22 @@ paths:
                     description: 'Thread ID or comment ID does not exist'
             security:
                 - bearerAuth: []
+    /markdown/:
+        post:
+            tags: [comment]
+            summary: 'Render markdown as HTML'
+            operationId: 'preview'
+            requestBody:
+                required: true
+                content:
+                    text/plain:
+                        schema:
+                            type: string
+                            format: 'markdown'
+            responses:
+                200:
+                    description: 'Response with HTML'
+            security: []
     /user:
         post:
             tags:
@@ -187,20 +241,22 @@ paths:
                   description: 'The user name for login (Email or ID)'
                   required: true
                   schema:
-                      type: 'string'
+                      type: string
                 - name: 'password'
                   in: 'query'
                   description: 'The password for login'
                   required: true
                   schema:
-                      type: 'string'
+                      type: string
+                      format: password
             responses:
                 200:
                     description: 'successful operation, returns JSON Web Token'
                     content:
                         application/json:
                             schema:
-                                type: 'string'
+                                type: string
+                                format: jwt
                 400:
                     description: 'Invalid username/password supplied'
             security: []
@@ -232,60 +288,117 @@ components:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/NewComment'
-                multipart/form-data:
-                    schema:
-                        $ref: '#/components/schemas/NewComment'
                 application/x-www-form-urlencoded:
                     schema:
                         $ref: '#/components/schemas/NewComment'
                 text/plain:
                     schema:
-                        type: 'string'
+                        type: string
+                        format: markdown
+    parameters:
+        threadIdParam:
+            name: 'thread_id'
+            in: 'path'
+            description: 'ID of thread containing comments'
+            required: true
+            schema:
+                type: string
+        commentIdParam:
+            name: 'comment_id'
+            in: 'path'
+            description: 'ID of comment'
+            required: true
+            schema:
+                type: integer
+                format: 'int32'
     schemas:
         Comment:
-            type: 'object'
+            type: object
             properties:
                 thread_id:
-                    type: 'string'
+                    type: string
                 comment_id:
-                    type: 'integer'
+                    type: integer
                     format: 'int32'
                 parent_id:
-                    type: 'integer'
+                    nullable: true
+                    type: integer
                     format: 'int32'
                 author:
                     $ref: '#/components/schemas/User'
+                author_association:
+                    type: string
+                    enum: [none, author]
                 content:
-                    type: 'string'
+                    type: string
+                    format: html
+                created_at:
+                    type: string
+                    format: 'date-time'
+                updated_at:
+                    type: string
+                    format: 'date-time'
+                reactions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Reaction'
+                children:
+                    $ref: '#/components/schemas/CommentsArray'
+        MoreComment:
+            type: object
+            properties:
+                comment_id:
+                    type: integer
+                    format: int32
+                count:
+                    type: integer
+        CommentsArray:
+            type: array
+            items:
+                oneOf:
+                    - $ref: '#/components/schemas/Comment'
+                    - $ref: '#/components/schemas/MoreComment'
         NewComment:
-            type: 'object'
+            type: object
             properties:
                 parent_id:
-                    type: 'integer'
+                    type: integer
                     format: 'int32'
                 content:
-                    type: 'string'
+                    type: string
+                    format: 'markdown'
             required:
                 - content
+        Reaction:
+            type: object
+            properties:
+                emoji:
+                    type: string
+                count:
+                    type: integer
+                viewer_has_reacted:
+                    type: boolean
+            required:
+                - emoji
+                - count
+                - viewer_has_reacted
+            example:
+                emoji: 🙂
+                count: 3
+                viewer_has_reacted: false
         User:
-            type: 'object'
+            type: object
             properties:
                 username:
-                    type: 'string'
+                    type: string
                 name:
-                    type: 'string'
+                    type: string
                 website:
-                    type: 'string'
+                    type: string
                 avatar_url:
-                    type: 'string'
-
-        ApiResponse:
-            type: 'object'
-            properties:
-                code:
-                    type: 'integer'
-                    format: 'int32'
-                type:
-                    type: 'string'
-                message:
-                    type: 'string'
+                    type: string
+            example:
+                username: 'drwho'
+                name: 'John Smith'
+                website: 'https://example.com'
+                avatar_url: ''
