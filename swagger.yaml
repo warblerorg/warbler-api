@@ -23,8 +23,29 @@ tags:
     - name: 'user'
       description: 'Operations about user'
 paths:
-    /comments/{thread_id}/:
+    /thread/{thread_id}/:
         summary: 'Represents a thread'
+        get:
+            tags: [comment]
+            summary: 'Get metadata for a thread'
+            operationId: 'getThread'
+            parameters:
+                - $ref: '#/components/parameters/threadIdParam'
+            responses:
+                200:
+                    description: 'Response with metadata'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    thread_id:
+                                        type: string
+                404:
+                    description: 'Thread ID does not exist'
+            security: []
+    /thread/{thread_id}/comments/:
+        summary: 'Represents comments in a thread'
         get:
             tags: [comment]
             summary: 'Find comments for a thread'
@@ -76,7 +97,7 @@ paths:
                     description: 'Thread ID does not exist'
             security:
                 - bearerAuth: []
-    /comments/{thread_id}/{comment_id}:
+    /thread/{thread_id}/comments/{comment_id}:
         get:
             tags: [comment]
             summary: 'Get a single comment sub-tree in the thread'
