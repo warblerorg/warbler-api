@@ -342,6 +342,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/Reaction'
+                source:
+                    type: string
+                    format: uri
                 children:
                     $ref: '#/components/schemas/CommentsArray'
         MoreComment:
